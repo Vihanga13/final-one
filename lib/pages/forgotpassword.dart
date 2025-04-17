@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart'; // Add this package to pubspec.yaml
@@ -12,10 +13,57 @@ class ModernForgotPasswordPage extends StatefulWidget {
 }
 
 class _ModernForgotPasswordPageState extends State<ModernForgotPasswordPage> {
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final _formKey = GlobalKey<FormState>();
   bool isEmail = true;
+  bool isLoading = false;
   final TextEditingController _controller = TextEditingController();
 
+  Future<void> _resetPassword() async {
+    if (_formKey.currentState!.validate()){
+      setState(() {
+        isLoading = true;
+      });
+
+      try {
+        await _auth.sendPasswordResetEmail(
+          email: _controller.text.trim(),
+        );
+
+        if(mounted){
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Password reset sent! Check your email.'),
+              backgroundColor: Color(0xFF86BF3E),
+            ),
+          );
+          Navigator.pop(context);
+        }
+      } on FirebaseAuthException catch (e) {
+        String errorMessage = 'An error occurred';
+        
+        if (e.code == 'user-not-found') {
+          errorMessage = 'No user found with this email address';
+        } else if (e.code == 'invalid-email') {
+          errorMessage = 'Invalid email address format';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }finally{
+         if (mounted) {
+          setState(() {
+            isLoading = false;
+          });
+        }
+      }
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -212,19 +260,7 @@ class _ModernForgotPasswordPageState extends State<ModernForgotPasswordPage> {
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ModernPinVerificationPage(
-                                contact: _controller.text,
-                                isEmail: isEmail,
-                              ),
-                            ),
-                          );
-                        }
-                      },
+                      onPressed: isLoading ? null : _resetPassword,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF86BF3E),
                         elevation: 0,
@@ -232,13 +268,16 @@ class _ModernForgotPasswordPageState extends State<ModernForgotPasswordPage> {
                           borderRadius: BorderRadius.circular(16),
                         ),
                       ),
-                      child: const Text(
-                        'Send Reset Link',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
-                      ),
+                      child: isLoading 
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text(
+                                'Send Reset Link',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white
+                                ),
+                              ),
                     ),
                   ),
                 ],

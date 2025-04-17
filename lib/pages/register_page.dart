@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -11,6 +12,9 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -27,6 +31,55 @@ class _RegisterPageState extends State<RegisterPage> {
   bool hasNumber = false;
   bool hasSpecialChar = false;
   bool hasMinLength = false;
+
+  Future<void> _registeruser() async {
+    if(_formKey.currentState!.validate()){
+      try {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(child: CircularProgressIndicator()),
+        );
+
+        final UserCredential userCredentials = await _auth.createUserWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+
+        if (userCredentials.user != null){
+
+          Navigator.pop(context);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Registration successful!')),
+          );
+
+          Navigator.pop(context);
+        }
+
+      } on FirebaseAuthException catch(e){
+        Navigator.pop(context);
+
+        String errorMessage = 'An error occurred during registration';
+
+         if (e.code == 'weak-password') {
+          errorMessage = 'The password provided is too weak.';
+        } else if (e.code == 'email-already-in-use') {
+          errorMessage = 'An account already exists for this email.';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      } catch (e) {
+         Navigator.pop(context);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    }
+  }
 
   void _updatePasswordStrength(String password) {
     setState(() {
@@ -302,7 +355,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     child: ElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          // Add registration functionality
+                          _registeruser();
                         }
                       },
                       style: ElevatedButton.styleFrom(
@@ -400,23 +453,23 @@ class PasswordRequirement extends StatelessWidget {
 
 
 
-Future<void> registerUser(String username, String email, String password, String phone) async {
-  final url = Uri.parse("http://127.0.0.1:5000/register");
+// Future<void> registerUser(String username, String email, String password, String phone) async {
+//   final url = Uri.parse("http://127.0.0.1:5000/register");
   
-  final response = await http.post(
-    url,
-    headers: {"Content-Type": "application/json"},
-    body: jsonEncode({
-      "username": username,
-      "email": email,
-      "password": password,
-      "phone": phone
-    }),
-  );
+//   final response = await http.post(
+//     url,
+//     headers: {"Content-Type": "application/json"},
+//     body: jsonEncode({
+//       "username": username,
+//       "email": email,
+//       "password": password,
+//       "phone": phone
+//     }),
+//   );
 
-  if (response.statusCode == 201) {
-    print("User registered successfully!");
-  } else {
-    print("Error: ${response.body}");
-  }
-}
+//   if (response.statusCode == 201) {
+//     print("User registered successfully!");
+//   } else {
+//     print("Error: ${response.body}");
+//   }
+// }

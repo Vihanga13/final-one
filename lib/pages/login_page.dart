@@ -1,4 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:health_app_3/pages/forgotpassword.dart';
+import 'package:health_app_3/pages/goal_selection_page.dart';
+import 'package:health_app_3/pages/register_page.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -10,6 +14,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -20,19 +25,55 @@ class _LoginPageState extends State<LoginPage> {
     String email = _emailController.text;
     String password = _passwordController.text;
 
-    final response = await http.post(
-      Uri.parse("http://127.0.0.1:5000/login"), // Flask backend URL
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({"Email": email, "Password": password}),
-    );
+    
+    try{
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
 
-    if (response.statusCode == 200) {
-      final responseData = jsonDecode(response.body);
-      print("Login Successful: ${responseData['user']}");
-      // Navigate to home screen after successful login
-    } else {
-      print("Login Failed: ${response.body}");
-      // Show error message to user
+      final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email:email.trim(),
+        password: password.trim(),
+      );
+
+      Navigator.pop(context);
+
+      if(userCredential.user != null){
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar( content: Text('Login Successfull'),)
+        );
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const GoalSelectionPage(),
+          )
+        );
+      }
+    } on FirebaseAuth catch (e) {
+       Navigator.pop(context);
+
+      String errorMessage = 'An error occurred during login';
+
+      // if (e) {
+      //   errorMessage = 'No user found for that email.';
+      // } else if (e.code == 'wrong-password') {
+      //   errorMessage = 'Wrong password provided.';
+      // } else if (e.code == 'invalid-email') {
+      //   errorMessage = 'The email address is badly formatted.';
+      // }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+    } catch (e) {
+      Navigator.pop(context);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
     }
   }
 
@@ -116,6 +157,27 @@ class _LoginPageState extends State<LoginPage> {
                       return null;
                     },
                   ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        // Navigate to forgot password page
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ModernForgotPasswordPage(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'Forgot Password?',
+                        style: TextStyle(
+                          color: Color(0xFF86BF3E),
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
@@ -136,6 +198,34 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "Don't have an account? ",
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          // Add navigation to sign up page
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => RegisterPage()),
+                          );
+                        },
+                        child: const Text(
+                          'Sign Up',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Color(0xFF86BF3E),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

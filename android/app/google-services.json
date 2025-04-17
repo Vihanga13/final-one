@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1081862296108",
+    "project_id": "final-one2002",
+    "storage_bucket": "final-one2002.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1081862296108:android:814e8ce55580af9f497789",
+        "android_client_info": {
+          "package_name": "com.example.health_app_3"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCec0GpxDKNrIAu8qjihdhiu5bGn8yQx2A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

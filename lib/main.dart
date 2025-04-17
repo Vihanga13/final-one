@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:health_app_3/firebase_options.dart';
 import 'package:health_app_3/pages/bmi_calculate_page.dart';
 import 'package:health_app_3/pages/bottom_navbar.dart';
 import 'package:health_app_3/pages/forgotpassword.dart';
@@ -13,7 +14,13 @@ import 'pages/meal_result_page.dart';
 import 'pages/scanmeal_page.dart';
 import 'package:path_provider/path_provider.dart';
 
-void main() {
+import 'package:firebase_core/firebase_core.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options:  DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
