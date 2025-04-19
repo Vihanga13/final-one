@@ -14,9 +14,13 @@ class _WhiteGreenBMIPageState extends State<WhiteGreenBMIPage>
   final TextEditingController _weightController = TextEditingController();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _slideAnimation;
   double? _bmi;
   String _bmiCategory = '';
   bool _isLoading = false;
+  bool _showResult = false;
+  bool _inputsFilled = false;
 
   // Color Scheme with White Background
   static const Color primaryGreen = Color(0xFF86BF3E);
@@ -31,10 +35,31 @@ class _WhiteGreenBMIPageState extends State<WhiteGreenBMIPage>
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
+    
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
+    
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
+    );
+    
+    _slideAnimation = Tween<double>(begin: 50.0, end: 0.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+    );
+    
     _animationController.forward();
+    
+    // Add listeners to check if both fields have values
+    _heightController.addListener(_checkInputs);
+    _weightController.addListener(_checkInputs);
+  }
+
+  void _checkInputs() {
+    setState(() {
+      _inputsFilled = _heightController.text.isNotEmpty && 
+                      _weightController.text.isNotEmpty;
+    });
   }
 
   @override
@@ -47,12 +72,25 @@ class _WhiteGreenBMIPageState extends State<WhiteGreenBMIPage>
 
   void _calculateBMI() {
     if (_heightController.text.isNotEmpty && _weightController.text.isNotEmpty) {
-      double height = double.parse(_heightController.text) / 100;
-      double weight = double.parse(_weightController.text);
-      
       setState(() {
-        _bmi = weight / (height * height);
-        _updateBMICategory();
+        _isLoading = true;
+      });
+      
+      // Simulate calculation delay
+      Future.delayed(const Duration(milliseconds: 800), () {
+        double height = double.parse(_heightController.text) / 100;
+        double weight = double.parse(_weightController.text);
+        
+        setState(() {
+          _bmi = weight / (height * height);
+          _updateBMICategory();
+          _isLoading = false;
+          _showResult = true;
+          
+          // Reset and forward animation to animate the result
+          _animationController.reset();
+          _animationController.forward();
+        });
       });
     }
   }
@@ -60,17 +98,15 @@ class _WhiteGreenBMIPageState extends State<WhiteGreenBMIPage>
   void _updateBMICategory() {
     if (_bmi == null) return;
 
-    setState(() {
-      if (_bmi! < 18.5) {
-        _bmiCategory = 'Underweight';
-      } else if (_bmi! < 24.9) {
-        _bmiCategory = 'Normal Weight';
-      } else if (_bmi! < 29.9) {
-        _bmiCategory = 'Overweight';
-      } else {
-        _bmiCategory = 'Obese';
-      }
-    });
+    if (_bmi! < 18.5) {
+      _bmiCategory = 'Underweight';
+    } else if (_bmi! < 24.9) {
+      _bmiCategory = 'Normal Weight';
+    } else if (_bmi! < 29.9) {
+      _bmiCategory = 'Overweight';
+    } else {
+      _bmiCategory = 'Obese';
+    }
   }
 
   Future<void> _handleDonePress() async {
@@ -120,129 +156,221 @@ class _WhiteGreenBMIPageState extends State<WhiteGreenBMIPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Input Section
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: backgroundColor,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: primaryGreen.withOpacity(0.2),
-                        width: 1,
+                  AnimatedBuilder(
+                    animation: _animationController,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(0, _slideAnimation.value),
+                        child: Opacity(
+                          opacity: _fadeAnimation.value,
+                          child: Transform.scale(
+                            scale: _scaleAnimation.value,
+                            child: child,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: backgroundColor,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: primaryGreen.withOpacity(0.2),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: primaryGreen.withOpacity(0.05),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: primaryGreen.withOpacity(0.05),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildInputField(
-                          controller: _heightController,
-                          label: 'Height',
-                          hint: 'Enter your height',
-                          suffix: 'cm',
-                          icon: Icons.height_rounded,
-                        ),
-                        const SizedBox(height: 20),
-                        _buildInputField(
-                          controller: _weightController,
-                          label: 'Weight',
-                          hint: 'Enter your weight',
-                          suffix: 'kg',
-                          icon: Icons.monitor_weight_rounded,
-                        ),
-                      ],
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildInputField(
+                            controller: _heightController,
+                            label: 'Height',
+                            hint: 'Enter your height',
+                            suffix: 'cm',
+                            icon: Icons.height_rounded,
+                          ),
+                          const SizedBox(height: 20),
+                          _buildInputField(
+                            controller: _weightController,
+                            label: 'Weight',
+                            hint: 'Enter your weight',
+                            suffix: 'kg',
+                            icon: Icons.monitor_weight_rounded,
+                          ),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: _inputsFilled && !_isLoading ? _calculateBMI : null,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: primaryGreen,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 0,
+                                disabledBackgroundColor: primaryGreen.withOpacity(0.5),
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Calculate BMI',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 30),
 
                   // Result Section
-                  if (_bmi != null) ...[
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: primaryGreen,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Your BMI',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                child: Text(
-                                  _bmiCategory,
-                                  style: const TextStyle(
+                  if (_showResult && _bmi != null) ...[
+                    AnimatedBuilder(
+                      animation: _animationController,
+                      builder: (context, child) {
+                        return Transform.translate(
+                          offset: Offset(0, _slideAnimation.value),
+                          child: Opacity(
+                            opacity: _fadeAnimation.value,
+                            child: Transform.scale(
+                              scale: _scaleAnimation.value,
+                              child: child,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: primaryGreen,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: primaryGreen.withOpacity(0.3),
+                              blurRadius: 15,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Your BMI',
+                                  style: TextStyle(
+                                    fontSize: 18,
                                     color: Colors.white,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          Text(
-                            _bmi!.toStringAsFixed(1),
-                            style: const TextStyle(
-                              fontSize: 48,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  child: Text(
+                                    _bmiCategory,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 20),
+                            TweenAnimationBuilder<double>(
+                              duration: const Duration(seconds: 1),
+                              tween: Tween<double>(begin: 0, end: _bmi!),
+                              builder: (context, value, child) {
+                                return Text(
+                                  value.toStringAsFixed(1),
+                                  style: const TextStyle(
+                                    fontSize: 48,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 30),
                   ],
 
                   // BMI Scale
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: backgroundColor,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: primaryGreen.withOpacity(0.2),
-                        width: 1,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'BMI Categories',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: textGreen,
+                  AnimatedBuilder(
+                    animation: _animationController,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(0, _slideAnimation.value),
+                        child: Opacity(
+                          opacity: _fadeAnimation.value,
+                          child: Transform.scale(
+                            scale: _scaleAnimation.value,
+                            child: child,
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        _buildBMIScaleItem('Underweight', '< 18.5'),
-                        _buildBMIScaleItem('Normal', '18.5 - 24.9'),
-                        _buildBMIScaleItem('Overweight', '25.0 - 29.9'),
-                        _buildBMIScaleItem('Obese', '≥ 30.0', isLast: true),
-                      ],
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: backgroundColor,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: primaryGreen.withOpacity(0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'BMI Categories',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: textGreen,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildBMIScaleItem('Underweight', '< 18.5'),
+                          _buildBMIScaleItem('Normal', '18.5 - 24.9'),
+                          _buildBMIScaleItem('Overweight', '25.0 - 29.9'),
+                          _buildBMIScaleItem('Obese', '≥ 30.0', isLast: true),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -332,7 +460,6 @@ class _WhiteGreenBMIPageState extends State<WhiteGreenBMIPage>
             controller: controller,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            onChanged: (value) => _calculateBMI(),
             style: TextStyle(
               color: textGreen,
               fontSize: 16,

@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:health_app_3/firebase_options.dart';
 import 'package:health_app_3/pages/bmi_calculate_page.dart';
 import 'package:health_app_3/pages/bottom_navbar.dart';
+import 'package:health_app_3/pages/change_password.dart';
 import 'package:health_app_3/pages/forgotpassword.dart';
 import 'package:health_app_3/pages/goal_selection_page.dart';
 import 'package:health_app_3/pages/login_page.dart';
 import 'package:health_app_3/pages/profile_page.dart';
 import 'package:health_app_3/pages/register_page.dart';
+import 'package:health_app_3/pages/settings_page.dart';
 import 'complete_details_page.dart';
 import 'pages/meal_comparison_page.dart';
 import 'pages/meal_result_page.dart';
@@ -29,7 +31,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false, // Hides the debug banner ✅
+      debugShowCheckedModeBanner: false, // Hides the debug banner 
       title: 'Fitness App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -57,6 +59,8 @@ class MyApp extends StatelessWidget {
             ),
         '/profiledetails': (context) => ProfilePage(),
         '/profile': (context) => ModernForgotPasswordPage(),
+        '/changepw': (context) => ChangePasswordPage(),
+        '/sett': (context) => SettingsPage(),
       },
     );
   }

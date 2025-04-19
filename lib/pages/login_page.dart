@@ -162,15 +162,9 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(24),
                           child: Image.asset(
-                            'assets/images/1.png',
+                            'assets/images/logo.png',
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Icon(
-                                Icons.fitness_center,
-                                size: 60,
-                                color: Color(0xFF86BF3E),
-                              );
-                            },
+                            
                           ),
                         ),
                       ),
@@ -358,10 +352,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Icon(
-                            Icons.arrow_forward_rounded,
-                            color: Colors.white,
-                          ),
+                          
                         ],
                       ),
                     ),

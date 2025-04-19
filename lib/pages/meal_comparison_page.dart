@@ -131,7 +131,7 @@ class MealComparisonPage extends StatelessWidget {
                       _buildComparisonRow('Protein', '25g', '30g', false),
                       _buildComparisonRow('Carbs', '80g', '60g', true),
                       _buildComparisonRow('Fat', '22g', '15g', true),
-                      _buildComparisonRow('Fiber', '8g', '12g', false),
+                     
                     ],
                   ),
                 ),

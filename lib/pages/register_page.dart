@@ -171,27 +171,34 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
                   const SizedBox(height: 20),
                   // App Logo
                   Center(
-                    child: Container(
-                      height: 90,
-                      width: 90,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF86BF3E),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF86BF3E).withOpacity(0.3),
-                            blurRadius: 15,
-                            spreadRadius: 2,
-                            offset: const Offset(0, 4),
+                    child: Hero(
+                      tag: 'app_logo',
+                      child: Container(
+                        height: 120,
+                        width: 120,
+                        decoration: BoxDecoration(
+                          color: const Color.fromARGB(153, 255, 255, 255),
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.08),
+                              blurRadius: 15,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: Image.asset(
+                            'assets/images/logo.png',
+                            fit: BoxFit.cover,
+                            
                           ),
-                        ],
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.health_and_safety,
-                        size: 50,
-                        color: Colors.white,
-                      ),
-                    ),
+                    ).animate()
+                      .fadeIn(duration: 600.ms)
+                      .scale(delay: 200.ms, duration: 400.ms),
                   ).animate()
                     .fadeIn(duration: 600.ms)
                     .scale(delay: 200.ms, duration: 400.ms)
@@ -556,11 +563,7 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
                               color: Colors.white,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          const Icon(
-                            Icons.arrow_forward_rounded,
-                            color: Colors.white,
-                          ),
+                          
                         ],
                       ),
                     ),
