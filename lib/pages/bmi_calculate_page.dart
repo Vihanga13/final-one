@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+
 class WhiteGreenBMIPage extends StatefulWidget {
   const WhiteGreenBMIPage({Key? key}) : super(key: key);
 
@@ -416,7 +417,7 @@ class _WhiteGreenBMIPageState extends State<WhiteGreenBMIPage>
                           ),
                         )
                       : const Text(
-                          'Done',
+                          'Scan Meal',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,

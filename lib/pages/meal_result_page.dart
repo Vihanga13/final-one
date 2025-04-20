@@ -439,11 +439,7 @@ class _MealResultPageState extends State<MealResultPage> with SingleTickerProvid
                                 0.3 * progressAnimation,
                                 Colors.red,
                               ),
-                              _buildNutrientProgressBar(
-                                'Vitamins',
-                                0.8 * progressAnimation,
-                                Colors.purple,
-                              ),
+                             
                             ],
                           );
                         },

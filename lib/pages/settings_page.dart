@@ -263,48 +263,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
               const SizedBox(height: 20),
 
-              // Change Password Section
-              _buildSectionTitle('Change Password'),
-              Container(
-                padding: const EdgeInsets.all(20),
-                color: Colors.white,
-                child: Column(
-                  children: [
-                    _buildPasswordField(
-                      controller: _currentPasswordController,
-                      label: 'Current Password',
-                      isVisible: _isPasswordVisible,
-                      onVisibilityChanged: (value) {
-                        setState(() => _isPasswordVisible = value);
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    _buildPasswordField(
-                      controller: _newPasswordController,
-                      label: 'New Password',
-                      isVisible: _isNewPasswordVisible,
-                      onVisibilityChanged: (value) {
-                        setState(() => _isNewPasswordVisible = value);
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    _buildPasswordField(
-                      controller: _confirmPasswordController,
-                      label: 'Confirm New Password',
-                      isVisible: _isConfirmPasswordVisible,
-                      onVisibilityChanged: (value) {
-                        setState(() => _isConfirmPasswordVisible = value);
-                      },
-                      validator: (value) {
-                        if (value != _newPasswordController.text) {
-                          return 'Passwords do not match';
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
-                ),
-              ),
+
 
               const SizedBox(height: 30),
             ],

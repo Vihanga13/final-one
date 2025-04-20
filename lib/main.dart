@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:health_app_3/firebase_options.dart';
+import 'package:health_app_3/pages/Help_and_support_page.dart';
 import 'package:health_app_3/pages/bmi_calculate_page.dart';
 import 'package:health_app_3/pages/bottom_navbar.dart';
 import 'package:health_app_3/pages/change_password.dart';
@@ -61,6 +62,7 @@ class MyApp extends StatelessWidget {
         '/profile': (context) => ModernForgotPasswordPage(),
         '/changepw': (context) => ChangePasswordPage(),
         '/sett': (context) => SettingsPage(),
+        '/help and supp': (context) => HelpSupportPage(),
       },
     );
   }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:health_app_3/pages/forgotpassword.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ChangePasswordPage extends StatefulWidget {
   const ChangePasswordPage({Key? key}) : super(key: key);
@@ -68,65 +70,11 @@ class _ChangePasswordPageState extends State<ChangePasswordPage>
   }
 
   void _showForgotPasswordDialog() {
-    final TextEditingController emailController = TextEditingController();
-    
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Reset Password'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Enter your email address and we will send you a password reset link.',
-                style: TextStyle(fontSize: 14),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email Address',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  floatingLabelStyle: const TextStyle(color: Color(0xFF86BF3E)),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFF86BF3E)),
-                  ),
-                ),
-                keyboardType: TextInputType.emailAddress,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // TODO: Implement password reset logic
-                if (emailController.text.isNotEmpty) {
-                  Navigator.of(context).pop();
-                  
-                  // Show animated snackbar
-                  _showAnimatedSnackBar('Password reset link sent to your email');
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF86BF3E),
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Send Reset Link'),
-            ),
-          ],
-        );
-      },
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ModernForgotPasswordPage(),
+      ),
     );
   }
 
@@ -155,22 +103,56 @@ class _ChangePasswordPageState extends State<ChangePasswordPage>
         _isLoading = true;
       });
 
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 1));
+      try {
+        // Get the current user
+        User? user = FirebaseAuth.instance.currentUser;
 
-      setState(() {
-        _isLoading = false;
-      });
+        if (user != null) {
+          // Re-authenticate the user
+          AuthCredential credential = EmailAuthProvider.credential(
+            email: user.email!,
+            password: _currentPasswordController.text,
+          );
 
-      // Success animation and feedback
-      _showAnimatedSnackBar('Password changed successfully');
-      
-      // Reset form with animation
-      _animationController.reset();
-      _currentPasswordController.clear();
-      _newPasswordController.clear();
-      _confirmPasswordController.clear();
-      _animationController.forward();
+          await user.reauthenticateWithCredential(credential);
+
+          // Update the password
+          await user.updatePassword(_newPasswordController.text);
+
+          // Show success message
+          _showAnimatedSnackBar('Password updated successfully');
+
+          // Reset the form and animations
+          _currentPasswordController.clear();
+          _newPasswordController.clear();
+          _confirmPasswordController.clear();
+          _animationController.reset();
+          _animationController.forward();
+        }
+      } on FirebaseAuthException catch (e) {
+        String errorMessage = 'An error occurred';
+
+        switch (e.code) {
+          case 'wrong-password':
+            errorMessage = 'The current password is incorrect';
+            break;
+          case 'requires-recent-login':
+            errorMessage = 'Please log in again to update your password';
+            break;
+          case 'weak-password':
+            errorMessage = 'The new password is too weak';
+            break;
+          default:
+            errorMessage = e.message ?? 'An error occurred';
+        }
+
+        // Show error message
+        _showAnimatedSnackBar(errorMessage);
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -178,8 +160,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Change Password'),
-        backgroundColor: const Color(0xFF86BF3E),
         foregroundColor: Colors.white,
         elevation: 0,
       ),
