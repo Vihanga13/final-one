@@ -40,9 +40,9 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => const LoginPage(),
+        '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
-        '/goal': (context) => const GoalSelectionPage(),
+        '/': (context) => const GoalSelectionPage(),
         '/bmi': (context) => WhiteGreenBMIPage(),
         '/scan_meal': (context) => CustomBottomNavBar(
               onItemSelected: (int index) {

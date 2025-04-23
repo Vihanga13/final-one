@@ -249,25 +249,10 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> with SingleTicker
   }
 
   void _animateButtonPress(BuildContext context) {
-    // Create button press animation
-    final scaleAnimation = TweenSequence([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.95), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: 0.95, end: 1.0), weight: 1),
-    ]).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.3, curve: Curves.easeInOut),
-      ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const WhiteGreenBMIPage()),
     );
-
-    // Reset controller for button animation
-    _controller.reset();
-    _controller.forward().then((_) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const WhiteGreenBMIPage()),
-      );
-    });
   }
 }
 

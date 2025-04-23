@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:health_app_3/pages/scanmeal_page.dart';
+
+
 
 
 class WhiteGreenBMIPage extends StatefulWidget {
@@ -397,7 +400,14 @@ class _WhiteGreenBMIPageState extends State<WhiteGreenBMIPage>
               ),
               child: SafeArea(
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : _handleDonePress,
+                  onPressed: _isLoading
+                      ? null
+                      : () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ScanMealPage()),
+                          );
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryGreen,
                     foregroundColor: Colors.white,

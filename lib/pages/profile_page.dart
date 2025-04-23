@@ -2,8 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:health_app_3/compo/BMICard.dart';
 import 'package:health_app_3/pages/settings_page.dart';
 import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
-class ProfilePage extends StatelessWidget {
+// Change ProfilePage to StatefulWidget
+class ProfilePage extends StatefulWidget {
+  ProfilePage({Key? key}) : super(key: key);
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
   final Color customGreen = const Color(0xFF86BF3E);
   final Color backgroundColor = const Color(0xFFF8F9FA);
 
@@ -15,14 +25,23 @@ class ProfilePage extends StatelessWidget {
     'fullName': 'John Doe',
     'birthday': DateTime(1990, 5, 15),
     'gender': 'Male',
-    'profilePic': 'assets/profile_pic.jpg', // Use a local asset or a valid URL
+    'profilePic': 'assets/profile_pic.jpg',
     'totalScans': 48,
-    'averageScore': 85,
     'averageScore': 85,
     'streakDays': 7,
   };
 
-  ProfilePage({Key? key}) : super(key: key);
+  File? _profileImage;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickProfileImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _profileImage = File(image.path);
+      });
+    }
+  }
 
   Widget _buildDrawer(BuildContext context) {
     return Drawer(
@@ -197,23 +216,27 @@ class ProfilePage extends StatelessWidget {
                                 color: Colors.white,
                                 width: 4,
                               ),
-                              image: const DecorationImage(
-                                image: NetworkImage(
-                                    'https://via.placeholder.com/150'),
+                              image: DecorationImage(
+                                image: _profileImage != null
+                                    ? FileImage(_profileImage!)
+                                    : AssetImage(userData['profilePic']) as ImageProvider,
                                 fit: BoxFit.cover,
                               ),
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.camera_alt,
-                              size: 20,
-                              color: customGreen,
+                          GestureDetector(
+                            onTap: _pickProfileImage,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.camera_alt,
+                                size: 20,
+                                color: customGreen,
+                              ),
                             ),
                           ),
                         ],
