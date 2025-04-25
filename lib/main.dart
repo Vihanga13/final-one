@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
-        '/': (context) => const GoalSelectionPage(),
+        '/goal': (context) => const GoalSelectionPage(),
         '/bmi': (context) => WhiteGreenBMIPage(),
         '/scan_meal': (context) => CustomBottomNavBar(
               onItemSelected: (int index) {
@@ -62,7 +62,7 @@ class MyApp extends StatelessWidget {
         '/profile': (context) => ModernForgotPasswordPage(),
         '/changepw': (context) => ChangePasswordPage(),
         '/sett': (context) => SettingsPage(),
-        '/help and supp': (context) => HelpSupportPage(),
+        '/': (context) => HelpSupportPage(),
       },
     );
   }
