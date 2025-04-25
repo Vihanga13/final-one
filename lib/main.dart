@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
-        '/': (context) => const GoalSelectionPage(),
+        '/goal': (context) => const GoalSelectionPage(),
         '/bmi': (context) => WhiteGreenBMIPage(),
         '/scan_meal': (context) => CustomBottomNavBar(
               onItemSelected: (int index) {
@@ -52,7 +52,7 @@ class MyApp extends StatelessWidget {
             ),
         '/meal_result': (context) => const ScanMealPage(),
         '/complete_details': (context) => CompleteProfilePage(),
-        '/forgot_password': (context) => MealResultPage(
+        '/': (context) => MealResultPage(
               mealImage: null,
             ),
         '/MealComparisonPage': (context) => const MealComparisonPage(
