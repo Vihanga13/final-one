@@ -6,10 +6,10 @@ class CustomBottomNavBar extends StatefulWidget {
   static const Color primaryGreen = Color(0xFF86BF3E);
 
   const CustomBottomNavBar({
-    Key? key,
+    super.key,
     required this.selectedIndex,
     required this.onItemSelected,
-  }) : super(key: key);
+  });
 
   @override
   State<CustomBottomNavBar> createState() => _CustomBottomNavBarState();
@@ -246,7 +246,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> with SingleTick
 
 // Usage Example with Page Transitions:
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+  const MyHomePage({super.key});
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -312,10 +312,10 @@ class _DemoPage extends StatelessWidget {
   final String title;
 
   const _DemoPage({
-    Key? key,
+    super.key,
     required this.color,
     required this.title,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

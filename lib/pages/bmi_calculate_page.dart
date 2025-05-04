@@ -6,7 +6,7 @@ import 'package:health_app_3/pages/scanmeal_page.dart';
 
 
 class WhiteGreenBMIPage extends StatefulWidget {
-  const WhiteGreenBMIPage({Key? key}) : super(key: key);
+  const WhiteGreenBMIPage({super.key});
 
   @override
   _WhiteGreenBMIPageState createState() => _WhiteGreenBMIPageState();

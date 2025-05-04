@@ -14,7 +14,6 @@ import 'complete_details_page.dart';
 import 'pages/meal_comparison_page.dart';
 import 'pages/meal_result_page.dart';
 import 'pages/scanmeal_page.dart';
-import 'package:path_provider/path_provider.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 
@@ -58,11 +57,11 @@ class MyApp extends StatelessWidget {
         '/MealComparisonPage': (context) => const MealComparisonPage(
               mealImage: null,
             ),
-        '/profiledetails': (context) => ProfilePage(),
+        '/': (context) => ProfilePage(),
         '/profile': (context) => ModernForgotPasswordPage(),
         '/changepw': (context) => ChangePasswordPage(),
         '/sett': (context) => SettingsPage(),
-        '/': (context) => HelpSupportPage(),
+        '/help': (context) => HelpSupportPage(),
       },
     );
   }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class HelpSupportPage extends StatefulWidget {
-  const HelpSupportPage({Key? key}) : super(key: key);
+  const HelpSupportPage({super.key});
 
   @override
   State<HelpSupportPage> createState() => _HelpSupportPageState();

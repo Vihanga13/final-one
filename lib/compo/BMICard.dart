@@ -7,12 +7,12 @@ class BMICard extends StatelessWidget {
   final bool showDetails;
 
   const BMICard({
-    Key? key,
+    super.key,
     required this.height,
     required this.weight,
     this.primaryColor = const Color(0xFF86BF3E),
     this.showDetails = true,
-  }) : super(key: key);
+  });
 
   double calculateBMI() {
     return weight / ((height / 100) * (height / 100));

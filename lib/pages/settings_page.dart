@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({Key? key}) : super(key: key);
+  const SettingsPage({super.key});
 
   @override
   _SettingsPageState createState() => _SettingsPageState();
@@ -22,9 +22,9 @@ class _SettingsPageState extends State<SettingsPage> {
   final _confirmPasswordController = TextEditingController();
   
   DateTime? _selectedDate;
-  bool _isPasswordVisible = false;
-  bool _isNewPasswordVisible = false;
-  bool _isConfirmPasswordVisible = false;
+  final bool _isPasswordVisible = false;
+  final bool _isNewPasswordVisible = false;
+  final bool _isConfirmPasswordVisible = false;
 
   @override
   void initState() {

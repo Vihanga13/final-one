@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({Key? key}) : super(key: key);
+  const RegisterPage({super.key});
 
   @override
   _RegisterPageState createState() => _RegisterPageState();
@@ -640,8 +640,7 @@ class AnimatedPasswordRequirement extends StatelessWidget {
   final bool isMet;
   final int delay;
 
-  const AnimatedPasswordRequirement(this.requirement, this.isMet, {Key? key, required this.delay})
-      : super(key: key);
+  const AnimatedPasswordRequirement(this.requirement, this.isMet, {super.key, required this.delay});
 
   @override
   Widget build(BuildContext context) {

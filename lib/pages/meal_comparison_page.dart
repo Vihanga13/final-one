@@ -7,9 +7,9 @@ class MealComparisonPage extends StatelessWidget {
   final Color customGreen = const Color(0xFF86BF3E);
 
   const MealComparisonPage({
-    Key? key,
+    super.key,
     required this.mealImage,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

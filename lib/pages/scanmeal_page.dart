@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 class ScanMealPage extends StatefulWidget {
-  const ScanMealPage({Key? key}) : super(key: key);
+  const ScanMealPage({super.key});
 
   @override
   State<ScanMealPage> createState() => _ModernScanMealPageState();

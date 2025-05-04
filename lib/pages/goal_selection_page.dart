@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:health_app_3/pages/bmi_calculate_page.dart';
 
 class GoalSelectionPage extends StatefulWidget {
-  const GoalSelectionPage({Key? key}) : super(key: key);
+  const GoalSelectionPage({super.key});
 
   @override
   _GoalSelectionPageState createState() => _GoalSelectionPageState();
@@ -265,14 +265,14 @@ class GoalCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const GoalCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.description,
     required this.icon,
     required this.gradient,
     required this.isSelected,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

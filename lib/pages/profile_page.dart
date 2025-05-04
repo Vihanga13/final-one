@@ -7,7 +7,7 @@ import 'dart:io';
 
 // Change ProfilePage to StatefulWidget
 class ProfilePage extends StatefulWidget {
-  ProfilePage({Key? key}) : super(key: key);
+  const ProfilePage({super.key});
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -377,21 +377,21 @@ class _ProfilePageState extends State<ProfilePage> {
                   const SizedBox(height: 30),
 
                   // Recommendations
-                  _buildSection(
-                    'Recommendations',
-                    [
-                      _buildRecommendationTile(
-                        'Increase Protein Intake',
-                        'Add more lean protein to your meals',
-                        Icons.fitness_center,
-                      ),
-                      _buildRecommendationTile(
-                        'More Vegetables',
-                        'Try to include more green vegetables',
-                        Icons.eco,
-                      ),
-                    ],
-                  ),
+                  // _buildSection(
+                  //   'Recommendations',
+                  //   [
+                  //     _buildRecommendationTile(
+                  //       'Increase Protein Intake',
+                  //       'Add more lean protein to your meals',
+                  //       Icons.fitness_center,
+                  //     ),
+                  //     _buildRecommendationTile(
+                  //       'More Vegetables',
+                  //       'Try to include more green vegetables',
+                  //       Icons.eco,
+                  //     ),
+                  //   ],
+                  // ),
 
                   const SizedBox(height: 20),
                 ],
@@ -400,6 +400,15 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: customGreen,
+        child: const Icon(Icons.qr_code_scanner, color: Colors.white),
+        onPressed: () {
+          Navigator.pushNamed(context, '/meal_result');
+        },
+        tooltip: 'Scan Meal',
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 

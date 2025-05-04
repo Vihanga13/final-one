@@ -5,7 +5,7 @@ import 'package:lottie/lottie.dart'; // Add this package to pubspec.yaml
 
 // Modern Forgot Password Flow
 class ModernForgotPasswordPage extends StatefulWidget {
-  const ModernForgotPasswordPage({Key? key}) : super(key: key);
+  const ModernForgotPasswordPage({super.key});
 
   @override
   State<ModernForgotPasswordPage> createState() =>
@@ -296,10 +296,10 @@ class ModernPinVerificationPage extends StatefulWidget {
   final bool isEmail;
 
   const ModernPinVerificationPage({
-    Key? key,
+    super.key,
     required this.contact,
     required this.isEmail,
-  }) : super(key: key);
+  });
 
   @override
   State<ModernPinVerificationPage> createState() =>
@@ -496,7 +496,7 @@ class _ModernPinVerificationPageState extends State<ModernPinVerificationPage> {
 
 // Modern New Password Page
 class ModernNewPasswordPage extends StatefulWidget {
-  const ModernNewPasswordPage({Key? key}) : super(key: key);
+  const ModernNewPasswordPage({super.key});
 
   @override
   State<ModernNewPasswordPage> createState() => _ModernNewPasswordPageState();

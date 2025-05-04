@@ -10,9 +10,9 @@ class MealResultPage extends StatefulWidget {
   final Color customGreen = const Color(0xFF86BF3E);
 
   const MealResultPage({
-    Key? key,
+    super.key,
     required this.mealImage,
-  }) : super(key: key);
+  });
 
   @override
   State<MealResultPage> createState() => _MealResultPageState();
