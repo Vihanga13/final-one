@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:health_app_3/pages/scanmeal_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 
 
@@ -74,28 +76,38 @@ class _WhiteGreenBMIPageState extends State<WhiteGreenBMIPage>
     super.dispose();
   }
 
-  void _calculateBMI() {
+  void _calculateBMI() async {
     if (_heightController.text.isNotEmpty && _weightController.text.isNotEmpty) {
       setState(() {
         _isLoading = true;
       });
-      
+
       // Simulate calculation delay
-      Future.delayed(const Duration(milliseconds: 800), () {
-        double height = double.parse(_heightController.text) / 100;
-        double weight = double.parse(_weightController.text);
-        
-        setState(() {
-          _bmi = weight / (height * height);
-          _updateBMICategory();
-          _isLoading = false;
-          _showResult = true;
-          
-          // Reset and forward animation to animate the result
-          _animationController.reset();
-          _animationController.forward();
-        });
+      await Future.delayed(const Duration(milliseconds: 800));
+      double height = double.parse(_heightController.text) / 100;
+      double weight = double.parse(_weightController.text);
+
+      setState(() {
+        _bmi = weight / (height * height);
+        _updateBMICategory();
+        _isLoading = false;
+        _showResult = true;
+
+        // Reset and forward animation to animate the result
+        _animationController.reset();
+        _animationController.forward();
       });
+
+      // Save to Firebase
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null && _bmi != null) {
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'height': height * 100, // in cm
+          'weight': weight,
+          'bmi': _bmi,
+          'bmiCategory': _bmiCategory,
+        }, SetOptions(merge: true));
+      }
     }
   }
 

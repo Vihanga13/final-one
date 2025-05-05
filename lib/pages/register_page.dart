@@ -88,7 +88,7 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
             ),
           );
 
-          Navigator.pop(context);
+          Navigator.pushReplacementNamed(context, '/complete_details');
         }
       } on FirebaseAuthException catch (e) {
         Navigator.pop(context);

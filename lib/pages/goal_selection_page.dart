@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:health_app_3/pages/bmi_calculate_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class GoalSelectionPage extends StatefulWidget {
   const GoalSelectionPage({super.key});
@@ -248,7 +250,14 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> with SingleTicker
     );
   }
 
-  void _animateButtonPress(BuildContext context) {
+  void _animateButtonPress(BuildContext context) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null && _selectedGoal != null) {
+      final selectedGoalTitle = _goals[_selectedGoal!]['title'];
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'goal': selectedGoalTitle,
+      }, SetOptions(merge: true));
+    }
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const WhiteGreenBMIPage()),

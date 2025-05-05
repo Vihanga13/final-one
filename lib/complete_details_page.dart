@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:health_app_3/pages/goal_selection_page.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class CompleteProfilePage extends StatefulWidget {
   const CompleteProfilePage({super.key});
@@ -12,6 +16,8 @@ class CompleteProfilePage extends StatefulWidget {
 class _CompleteProfilePageState extends State<CompleteProfilePage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _usernameController = TextEditingController(); // Add this
+  final _phoneController = TextEditingController();    // Add this
   DateTime? _selectedDate;
   String _selectedGender = '';
   File? _imageFile;
@@ -84,6 +90,35 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
         );
       },
     );
+  }
+
+  Future<void> _saveProfile() async {
+    if (_formKey.currentState!.validate()) {
+      String? imageUrl;
+      final user = FirebaseAuth.instance.currentUser;
+
+      // Upload image if selected
+      if (_imageFile != null) {
+        final storageRef = FirebaseStorage.instance
+            .ref()
+            .child('profile_images')
+            .child('${user!.uid}.jpg');
+        // Upload the file
+        await storageRef.putFile(_imageFile!);
+        // Get the download URL after upload completes
+        imageUrl = await storageRef.getDownloadURL();
+      }
+
+      // Save user data to Firestore
+      await FirebaseFirestore.instance.collection('users').doc(user!.uid).set({
+        'name': _nameController.text.trim(),
+        'username': _usernameController.text.trim(),
+        'phoneNumber': _phoneController.text.trim(),
+        'birthday': _selectedDate != null ? _selectedDate!.toIso8601String() : null,
+        'gender': _selectedGender,
+        'profileImage': imageUrl, // This can be null if no image selected
+      }, SetOptions(merge: true));
+    }
   }
 
   @override
@@ -176,6 +211,53 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your name';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+
+                // Username Field
+                TextFormField(
+                  controller: _usernameController,
+                  decoration: InputDecoration(
+                    labelText: 'Username',
+                    prefixIcon: const Icon(Icons.alternate_email),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFF86BF3E)),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your username';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+
+                // Phone Number Field
+                TextFormField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration(
+                    labelText: 'Phone Number',
+                    prefixIcon: const Icon(Icons.phone),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFF86BF3E)),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your phone number';
                     }
                     return null;
                   },
@@ -275,15 +357,50 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
                   width: double.infinity,
                   height: 55,
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       if (_formKey.currentState!.validate() && 
                           _selectedGender.isNotEmpty) {
-                        // Add save profile functionality
-                        // You can access:
-                        // - _imageFile for profile picture
-                        // - _nameController.text for name
-                        // - _selectedDate for birthday
-                        // - _selectedGender for gender
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => const Center(child: CircularProgressIndicator()),
+                        );
+                        try {
+                          final user = FirebaseAuth.instance.currentUser;
+                          if (user == null) throw Exception('User not logged in');
+                          String? imageUrl;
+                          if (_imageFile != null) {
+                            final ref = FirebaseStorage.instance
+                                .ref()
+                                .child('profile_images')
+                                .child('${user.uid}.jpg');
+                            final uploadTask = await ref.putFile(_imageFile!);
+                            if (uploadTask.state == TaskState.success) {
+                              imageUrl = await ref.getDownloadURL();
+                            } else {
+                              throw Exception('Image upload failed');
+                            }
+                          }
+                          await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+                            'name': _nameController.text.trim(),
+                            'username': _usernameController.text.trim(),
+                            'phoneNumber': _phoneController.text.trim(),
+                            'birthday': _selectedDate != null ? _selectedDate!.toIso8601String() : null,
+                            'gender': _selectedGender,
+                            'profileImage': imageUrl,
+                          }, SetOptions(merge: true));
+                          Navigator.pop(context); // Close loading
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Profile saved successfully!')),
+                          );
+                          Navigator.pushReplacementNamed(context, '/goal_selection');
+                        } catch (e) {
+                          // ignore: use_build_context_synchronously
+                          Navigator.pop(context); // Close loading
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: ${e.toString()}')),
+                          );
+                        }
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -312,6 +429,8 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _usernameController.dispose(); // Add this
+    _phoneController.dispose();    // Add this
     super.dispose();
   }
 }
