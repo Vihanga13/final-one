@@ -3,6 +3,10 @@ import 'package:camera/camera.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Ensure this import is present
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ScanMealPage extends StatefulWidget {
   const ScanMealPage({Key? key}) : super(key: key);
@@ -67,16 +71,52 @@ class _ModernScanMealPageState extends State<ScanMealPage> with TickerProviderSt
     }
   }
 
-  void _processImage(File image) {
+  void _processImage(File image) async {
     setState(() {
       _isScanning = true;
     });
-    Future.delayed(const Duration(seconds: 2), () {
+
+    try {
+      // Send image to your Flask API
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('http://192.168.1.209:5000/predict'), // Use your server IP
+      );
+      request.files.add(await http.MultipartFile.fromPath('file', image.path));
+      var response = await request.send();
+
+      String resultText = 'Unknown';
+      if (response.statusCode == 200) {
+        final respStr = await response.stream.bytesToString();
+        final data = json.decode(respStr);
+        resultText = data['result'] ?? 'Unknown';
+
+        // Save result to Firebase
+        final user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .collection('scans')
+              .add({
+            'result': resultText,
+            'timestamp': FieldValue.serverTimestamp(),
+          });
+        }
+      } else {
+        resultText = 'Error: ${response.statusCode}';
+      }
+
       setState(() {
         _isScanning = false;
       });
-      _showModernResultDialog();
-    });
+      _showModernResultDialog(resultText);
+    } catch (e) {
+      setState(() {
+        _isScanning = false;
+      });
+      _showModernResultDialog('Error: $e');
+    }
   }
 
   void _scanMeal() async {
@@ -98,7 +138,7 @@ class _ModernScanMealPageState extends State<ScanMealPage> with TickerProviderSt
     }
   }
 
-  void _showModernResultDialog() {
+  void _showModernResultDialog(String result) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -136,10 +176,10 @@ class _ModernScanMealPageState extends State<ScanMealPage> with TickerProviderSt
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Your meal has been successfully scanned!',
+              Text(
+                'Result: $result',
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   color: Colors.grey,
                 ),
