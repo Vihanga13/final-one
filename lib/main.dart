@@ -14,7 +14,6 @@ import 'complete_details_page.dart';
 import 'pages/meal_comparison_page.dart';
 import 'pages/meal_result_page.dart';
 import 'pages/scanmeal_page.dart';
-import 'package:path_provider/path_provider.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 
@@ -40,9 +39,9 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/login': (context) => const LoginPage(),
+        '/': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
-        '/goal': (context) => const GoalSelectionPage(),
+        '/goal_selection': (context) => const GoalSelectionPage(),
         '/bmi': (context) => WhiteGreenBMIPage(),
         '/scan_meal': (context) => CustomBottomNavBar(
               onItemSelected: (int index) {
@@ -51,18 +50,22 @@ class MyApp extends StatelessWidget {
               selectedIndex: 0,
             ),
         '/meal_result': (context) => const ScanMealPage(),
+        '/profile': (context) => CompleteProfilePage(),
+        '/forgot_password': (context) => MealResultPage(
+              mealImage: null, // Provide a value for the required parameter
+            ),
         '/complete_details': (context) => CompleteProfilePage(),
-        '/': (context) => MealResultPage(
+        '/meal': (context) => MealResultPage(
               mealImage: null,
             ),
         '/MealComparisonPage': (context) => const MealComparisonPage(
               mealImage: null,
             ),
-        '/profiledetails': (context) => ProfilePage(),
+        '/pro': (context) => ProfilePage(),
         '/profile': (context) => ModernForgotPasswordPage(),
         '/changepw': (context) => ChangePasswordPage(),
         '/sett': (context) => SettingsPage(),
-        '/help and supp': (context) => HelpSupportPage(),
+        '/help': (context) => HelpSupportPage(),
       },
     );
   }
