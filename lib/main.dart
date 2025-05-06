@@ -31,13 +31,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false, // Hides the debug banner 
+      debugShowCheckedModeBanner: false,
       title: 'Fitness App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
-      initialRoute: '/',
+      initialRoute: '/l',
       routes: {
         '/l': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
@@ -50,17 +50,14 @@ class MyApp extends StatelessWidget {
               selectedIndex: 0,
             ),
         '/meal_result': (context) => const ScanMealPage(),
-        '/': (context) => CompleteProfilePage(),
-        '/forgot_password': (context) => MealResultPage(
+        '/complete_details': (context) => CompleteProfilePage(),
+        '/forgot_password': (context) => ModernForgotPasswordPage(),
+        '/meal_comparison': (context) => const MealComparisonPage(
               mealImage: null,
             ),
-        '/MealComparisonPage': (context) => const MealComparisonPage(
-              mealImage: null,
-            ),
-        '/pro': (context) => ProfilePage(),
-        '/profile': (context) => ModernForgotPasswordPage(),
+        '/profile': (context) => ProfilePage(),
         '/changepw': (context) => ChangePasswordPage(),
-        '/sett': (context) => SettingsPage(),
+        '/settings': (context) => SettingsPage(),
         '/help': (context) => HelpSupportPage(),
       },
     );

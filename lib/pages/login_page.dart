@@ -3,12 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:health_app_3/pages/forgotpassword.dart';
 import 'package:health_app_3/pages/goal_selection_page.dart';
 import 'package:health_app_3/pages/register_page.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter_animate/flutter_animate.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({Key? key}) : super(key: key);
 
   @override
   _LoginPageState createState() => _LoginPageState();
