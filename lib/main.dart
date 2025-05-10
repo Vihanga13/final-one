@@ -15,6 +15,7 @@ import 'pages/meal_comparison_page.dart';
 import 'pages/meal_result_page.dart';
 import 'pages/scanmeal_page.dart';
 
+
 import 'package:firebase_core/firebase_core.dart';
 
 Future<void> main() async {
@@ -37,24 +38,22 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
-      initialRoute: '/l',
+      initialRoute: '/',
       routes: {
         '/': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/goal_selection': (context) => const GoalSelectionPage(),
         '/bmi': (context) => WhiteGreenBMIPage(),
-        '/scan_meal': (context) => CustomBottomNavBar(
+        '/bottom': (context) => CustomBottomNavBar(
               onItemSelected: (int index) {
                 // Implement functionality here
               },
               selectedIndex: 0,
             ),
-        '/meal_result': (context) => const ScanMealPage(),
+        '/scan_meal': (context) => const ScanMealPage(),
         '/complete_details': (context) => CompleteProfilePage(),
         '/forgot_password': (context) => ModernForgotPasswordPage(),
-        '/meal_comparison': (context) => const MealComparisonPage(
-              mealImage: null,
-            ),
+        '/meal_result': (context) => const MealResultPage(mealImage: null,), // Replace 'defaultGoal' with an appropriate value
         '/profile': (context) => ProfilePage(),
         '/changepw': (context) => ChangePasswordPage(),
         '/settings': (context) => SettingsPage(),

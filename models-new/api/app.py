@@ -14,10 +14,8 @@ class_names = [
 ]
 num_classes = len(class_names)
 
-# Recreate the model architecture
-model = models.resnet18(pretrained=False)
-model.fc = torch.nn.Linear(model.fc.in_features, num_classes)
-model.load_state_dict(torch.load('C:\Users\vihan\projects\final-one\models-new\saved_model.pt', map_location='cpu'))
+# Load the TorchScript model
+model = torch.jit.load(r'C:\Users\vihan\projects\final-one\models-new\saved_model.pt', map_location='cpu')
 model.eval()
 
 def your_predict_function(image):

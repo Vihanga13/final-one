@@ -570,9 +570,7 @@ class _MealResultPageState extends State<MealResultPage> with SingleTickerProvid
                                       pageBuilder: (context, animation, secondaryAnimation) {
                                         return FadeTransition(
                                           opacity: animation,
-                                          child: MealComparisonPage(
-                                            mealImage: null,
-                                          ),
+                                          child: MealResultPage(mealImage: null, ),
                                         );
                                       },
                                       transitionDuration: const Duration(milliseconds: 500),

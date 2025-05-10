@@ -30,19 +30,18 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  intl: ^0.18.0  # Add this line with the latest version of the intl package
-  cupertino_icons: ^1.0.8
+  intl: ^0.18.0  # Add this line with the latest version of the intl package  cupertino_icons: ^1.0.8
   camera: ^0.10.0+1  # Ensure you have the correct version
   permission_handler: ^11.3.1
   image_picker: ^0.8.4+3  # Ensure you have the correct version
   cached_network_image: ^3.2.1  # Ensure you have the correct version
   path_provider: ^2.0.11  # Ensure you have the correct version
   lottie: ^2.3.2
-  firebase_auth: ^5.5.0
-  flutter_animate: ^4.5.0
+  firebase_auth: ^5.5.2
   firebase_core: ^3.13.0
-  cloud_firestore: ^5.0.0
-  firebase_storage: ^12.0.0
+  cloud_firestore: ^5.6.7
+  firebase_storage: ^12.4.5
+  flutter_animate: ^4.5.0
   
 dev_dependencies:
   flutter_test:

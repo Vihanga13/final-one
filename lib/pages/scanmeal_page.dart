@@ -76,11 +76,10 @@ class _ModernScanMealPageState extends State<ScanMealPage> with TickerProviderSt
       _isScanning = true;
     });
 
-    try {
-      // Send image to your Flask API
+    try {      // Send image to your Flask API
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://192.168.1.209:5000/predict'), // Use your server IP
+        Uri.parse('http://192.168.1.7:5000/predict'), // Updated server IP
       );
       request.files.add(await http.MultipartFile.fromPath('file', image.path));
       var response = await request.send();
@@ -90,19 +89,7 @@ class _ModernScanMealPageState extends State<ScanMealPage> with TickerProviderSt
         final respStr = await response.stream.bytesToString();
         final data = json.decode(respStr);
         resultText = data['result'] ?? 'Unknown';
-
-        // Save result to Firebase
-        final user = FirebaseAuth.instance.currentUser;
-        if (user != null) {
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.uid)
-              .collection('scans')
-              .add({
-            'result': resultText,
-            'timestamp': FieldValue.serverTimestamp(),
-          });
-        }
+        // No longer saving result to Firebase
       } else {
         resultText = 'Error: ${response.statusCode}';
       }
