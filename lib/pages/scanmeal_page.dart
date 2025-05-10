@@ -89,7 +89,18 @@ class _ModernScanMealPageState extends State<ScanMealPage> with TickerProviderSt
         final respStr = await response.stream.bytesToString();
         final data = json.decode(respStr);
         resultText = data['result'] ?? 'Unknown';
-        // No longer saving result to Firebase
+        // Save only meal name to Firestore
+        final user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .collection('scaned-meal') // Changed from 'meals' to 'scaned-meal'
+              .add({
+            'mealName': resultText,
+            'timestamp': FieldValue.serverTimestamp(),
+          });
+        }
       } else {
         resultText = 'Error: ${response.statusCode}';
       }
@@ -97,7 +108,7 @@ class _ModernScanMealPageState extends State<ScanMealPage> with TickerProviderSt
       setState(() {
         _isScanning = false;
       });
-      _showModernResultDialog(resultText);
+      _showScanOptionsDialog(resultText);
     } catch (e) {
       setState(() {
         _isScanning = false;
@@ -192,6 +203,44 @@ class _ModernScanMealPageState extends State<ScanMealPage> with TickerProviderSt
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showScanOptionsDialog(String result) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Scan Complete', style: TextStyle(color: customGreen, fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Meal: $result', style: const TextStyle(fontSize: 18)),
+            const SizedBox(height: 16),
+            const Text('Do you want to scan another meal?'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Close dialog, allow another scan
+              setState(() {
+                _selectedImage = null;
+              });
+            },
+            child: const Text('Scan More'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: customGreen),
+            onPressed: () {
+              Navigator.pop(context); // Close dialog
+              Navigator.pushReplacementNamed(context, '/meal_result');
+            },
+            child: const Text('Finish', style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
   }
