@@ -9,12 +9,14 @@ class MealComparisonPage extends StatefulWidget {
   final Map<String, dynamic>? mealNutrition;
   final Map<String, dynamic>? goalNutrition;
   final String? goalName;
+  final String? mealName; // Add this line
   const MealComparisonPage({
     super.key,
     required this.mealImage,
     this.mealNutrition,
     this.goalNutrition,
     this.goalName,
+    this.mealName, // Add this line
   });
 
   @override
@@ -30,6 +32,7 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
   String? mealName;
   bool isLoading = true;
   List<String> availableGoals = [];
+  List<Map<String, dynamic>> recommendedMeals = [];
 
   @override
   void initState() {
@@ -46,6 +49,7 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
       if (mealName != null && mealName!.isNotEmpty) {
         _fetchRecommendedMeal(selectedGoal, mealName!);
       }
+      _fetchRecommendedMealsList(selectedGoal); // Fetch all recommended meals for the goal
     } else {
       _fetchGoalsAndData();
     }
@@ -70,14 +74,12 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
     return null;
   }
 
-  // Fetch recommended meal nutrition for a goal/mealName
+  // Fetch recommended meal nutrition for a mealName from top-level meals collection (to match MealResultPage)
   Future<void> _fetchRecommendedMeal(String goal, String mealName) async {
     setState(() => isLoading = true);
     final docId = mealName.trim();
-    print('[DEBUG] Fetching recommended meal: goal="$goal", mealName="$mealName", docId="$docId"');
+    print('[DEBUG] Fetching recommended meal (top-level meals): mealName="$mealName", docId="$docId"');
     final recommendedMealSnap = await FirebaseFirestore.instance
-        .collection('goals')
-        .doc(goal)
         .collection('meals')
         .doc(docId)
         .get();
@@ -163,14 +165,28 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
         .doc(selectedGoal)
         .get();
     goalNutrition = goalSnap.data() ?? {};
-    // Fetch recommended meal for this goal and meal name
+    // Fetch recommended meal nutrition from top-level meals collection
     final recommendedMealSnap = await FirebaseFirestore.instance
-        .collection('goals')
-        .doc(selectedGoal)
         .collection('meals')
         .doc(mealName)
         .get();
     recommendedMealNutrition = recommendedMealSnap.data();
+    setState(() => isLoading = false);
+  }
+
+  // Fetch all recommended meals for a goal
+  Future<void> _fetchRecommendedMealsList(String goal) async {
+    setState(() => isLoading = true);
+    final mealsSnap = await FirebaseFirestore.instance
+        .collection('goals')
+        .doc(goal)
+        .collection('meals')
+        .get();
+    recommendedMeals = mealsSnap.docs.map((doc) {
+      final data = doc.data();
+      data['mealName'] = doc.id;
+      return data;
+    }).toList();
     setState(() => isLoading = false);
   }
 
@@ -244,6 +260,15 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
                                 children: [
                                   Text('Your Meal', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[800])),
                                   const SizedBox(height: 8),
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      (effectiveMealNutrition != null && effectiveMealNutrition.containsKey('mealName') && effectiveMealNutrition['mealName'].toString().isNotEmpty)
+                                          ? effectiveMealNutrition['mealName'].toString()
+                                          : (widget.mealName ?? mealName ?? '(no meal name)'),
+                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: customGreen),
+                                    ),
+                                  ),
                                   Container(
                                     height: 120,
                                     decoration: BoxDecoration(
@@ -270,7 +295,7 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
                                           Text('Meal Nutrition', style: TextStyle(fontWeight: FontWeight.bold, color: customGreen)),
                                           const SizedBox(height: 4),
                                           _buildMealNutritionRow('Calories', _parseValue(_getFieldValue(effectiveMealNutrition, ['calories', 'Calories', 'calorie', 'Calorie'])).toString(), 'kcal'),
-                                          _buildMealNutritionRow('Protein', _parseValue(_getFieldValue(effectiveMealNutrition, ['protein', 'Protein', 'protien', 'Protien'])).toString(), 'g'),
+                                          _buildMealNutritionRow('Protein', _parseValue(_getFieldValue(effectiveMealNutrition, ['Protein', 'Protein', 'Protien', 'Protien'])).toString(), 'g'),
                                           _buildMealNutritionRow('Carbs', _parseValue(_getFieldValue(effectiveMealNutrition, ['carbs', 'Carbs', 'carbohydrates', 'Carbohydrates', 'carb', 'Carb'])).toString(), 'g'),
                                           _buildMealNutritionRow('Fat', _parseValue(_getFieldValue(effectiveMealNutrition, ['fat', 'Fat', 'fats', 'Fats'])).toString(), 'g'),
                                         ],
@@ -291,6 +316,20 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
                               child: Column(
                                 children: [
                                   Text('Recommended', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[800])),
+                                  const SizedBox(height: 8),
+                                  // Show actual goal and mealName for debugging
+                                  Text('Goal: $selectedGoal', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                                  Text('Meal: ${mealName ?? "(none)"}', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                                  // Show the recommended meal name if available
+                                  if (recommendedMealNutrition != null && (recommendedMealNutrition!['name'] != null || recommendedMealNutrition!['mealName'] != null))
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 4.0, bottom: 4.0),
+                                      child: Text(
+                                        recommendedMealNutrition!['name']?.toString() ?? recommendedMealNutrition!['mealName']?.toString() ?? '',
+                                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: customGreen),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
                                   const SizedBox(height: 8),
                                   Container(
                                     height: 120,
@@ -323,10 +362,12 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
                                                     _buildMealNutritionRow('Fat', _parseValue(_getFieldValue(recommendedMealNutrition!, ['fat', 'Fat', 'fats', 'Fats'])).toString(), 'g'),
                                                   ],
                                                 )
-                                              : const Text('No nutrition data in Firestore for this meal.'))
-                                          : const Text('No recommended meal found for this goal.'),
+                                              : const Text('No nutrition data in Firestore for this meal (document exists but is empty).'))
+                                          : const Text('No recommended meal found for this goal and meal name (document not found).'),
                                     ),
                                   ),
+                                  const SizedBox(height: 16),
+                        
                                 ],
                               ),
                             ),
@@ -346,6 +387,49 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
                               children: [
                                 Text('Nutrition Comparison', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.grey[800])),
                                 const SizedBox(height: 16),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // User Meal Details
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text('Your Meal', style: TextStyle(fontWeight: FontWeight.bold, color: customGreen)),
+                                          const SizedBox(height: 8),
+                                          _buildMealNutritionRow('Calories', _parseValue(_getFieldValue(effectiveMealNutrition, ['calories', 'Calories', 'calorie', 'Calorie'])).toString(), 'kcal'),
+                                          _buildMealNutritionRow('Protein', _parseValue(_getFieldValue(effectiveMealNutrition, ['protein', 'Protein', 'protien', 'Protien'])).toString(), 'g'),
+                                          _buildMealNutritionRow('Carbs', _parseValue(_getFieldValue(effectiveMealNutrition, ['carbs', 'Carbs', 'carbohydrates', 'Carbohydrates', 'carb', 'Carb'])).toString(), 'g'),
+                                          _buildMealNutritionRow('Fat', _parseValue(_getFieldValue(effectiveMealNutrition, ['fat', 'Fat', 'fats', 'Fats'])).toString(), 'g'),
+                                        ],
+                                      ),
+                                    ),
+                                    Container(width: 1, height: 80, color: Colors.grey[300]),
+                                    // Recommended Meal Details
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text('Recommended', style: TextStyle(fontWeight: FontWeight.bold, color: customGreen)),
+                                          const SizedBox(height: 8),
+                                          recommendedMealNutrition != null && recommendedMealNutrition!.isNotEmpty
+                                              ? Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    _buildMealNutritionRow('Calories', _parseValue(_getFieldValue(recommendedMealNutrition!, ['calories', 'Calories', 'calorie', 'Calorie'])).toString(), 'kcal'),
+                                                    _buildMealNutritionRow('Protein', _parseValue(_getFieldValue(recommendedMealNutrition!, ['protein', 'Protein', 'protien', 'Protien'])).toString(), 'g'),
+                                                    _buildMealNutritionRow('Carbs', _parseValue(_getFieldValue(recommendedMealNutrition!, ['carbs', 'Carbs', 'carbohydrates', 'Carbohydrates', 'carb', 'Carb'])).toString(), 'g'),
+                                                    _buildMealNutritionRow('Fat', _parseValue(_getFieldValue(recommendedMealNutrition!, ['fat', 'Fat', 'fats', 'Fats'])).toString(), 'g'),
+                                                  ],
+                                                )
+                                              : const Text('No recommended meal data'),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 24),
+                                // ...existing code for macro-by-macro comparison rows...
                                 _buildComparisonRow(
                                   'Calories',
                                   _parseValue(_getFieldValue(effectiveMealNutrition, ['calories', 'Calories', 'calorie', 'Calorie'])).toString(),

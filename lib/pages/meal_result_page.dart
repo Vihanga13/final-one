@@ -477,6 +477,7 @@ class _MealResultPageState extends State<MealResultPage> with SingleTickerProvid
                         'protein': protein,
                         'carbs': carbs,
                         'fats': fats,
+                        'mealName': mealName, // Pass meal name for display
                       };
                       Navigator.push(
                         context,
@@ -489,6 +490,7 @@ class _MealResultPageState extends State<MealResultPage> with SingleTickerProvid
                                 mealNutrition: mealNutrition,
                                 goalNutrition: goalNutrition,
                                 goalName: userGoal,
+                                mealName: mealName, // Pass meal name as argument
                               ),
                             );
                           },
