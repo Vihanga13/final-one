@@ -6,7 +6,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class MealComparisonPage extends StatefulWidget {
   final File? mealImage;
-  const MealComparisonPage({super.key, required this.mealImage});
+  final Map<String, dynamic>? mealNutrition;
+  final Map<String, dynamic>? goalNutrition;
+  final String? goalName;
+  const MealComparisonPage({
+    super.key,
+    required this.mealImage,
+    this.mealNutrition,
+    this.goalNutrition,
+    this.goalName,
+  });
 
   @override
   State<MealComparisonPage> createState() => _MealComparisonPageState();
@@ -17,6 +26,7 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
   String selectedGoal = 'Cholesterol Patients';
   Map<String, dynamic>? mealNutrition;
   Map<String, dynamic>? goalNutrition;
+  Map<String, dynamic>? recommendedMealNutrition;
   String? mealName;
   bool isLoading = true;
   List<String> availableGoals = [];
@@ -24,10 +34,72 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
   @override
   void initState() {
     super.initState();
-    _fetchGoalsAndData();
+    if (widget.mealNutrition != null && widget.goalNutrition != null) {
+      mealNutrition = widget.mealNutrition;
+      goalNutrition = widget.goalNutrition;
+      selectedGoal = widget.goalName ?? selectedGoal;
+      // Extract and normalize mealName
+      mealName = _extractAndNormalizeMealName(widget.mealNutrition);
+      isLoading = false;
+      _fetchGoals();
+      // Fetch recommended meal for direct compare mode
+      if (mealName != null && mealName!.isNotEmpty) {
+        _fetchRecommendedMeal(selectedGoal, mealName!);
+      }
+    } else {
+      _fetchGoalsAndData();
+    }
+  }
+
+  // Helper to robustly extract meal name from nutrition map (no underscore normalization)
+  String? _extractAndNormalizeMealName(Map<String, dynamic>? nutrition) {
+    if (nutrition == null) return null;
+    // Try common keys
+    for (final key in ['name', 'mealName', 'title', 'MealName', 'meal_name']) {
+      if (nutrition.containsKey(key) && nutrition[key] != null && nutrition[key].toString().trim().isNotEmpty) {
+        return nutrition[key].toString().trim();
+      }
+    }
+    // Fallback: if only one key and it's not a nutrition field, use it
+    if (nutrition.length == 1) {
+      final k = nutrition.keys.first;
+      if (!['calories', 'protein', 'carbs', 'fat', 'Calories', 'Protein', 'Carbs', 'Fat'].contains(k)) {
+        return nutrition[k].toString().trim();
+      }
+    }
+    return null;
+  }
+
+  // Fetch recommended meal nutrition for a goal/mealName
+  Future<void> _fetchRecommendedMeal(String goal, String mealName) async {
+    setState(() => isLoading = true);
+    final recommendedMealSnap = await FirebaseFirestore.instance
+        .collection('goals')
+        .doc(goal)
+        .collection('meals')
+        .doc(mealName)
+        .get();
+    setState(() {
+      recommendedMealNutrition = recommendedMealSnap.data();
+      isLoading = false;
+    });
+  }
+
+  Future<void> _fetchGoals() async {
+    final goalsSnap = await FirebaseFirestore.instance.collection('goals').get();
+    setState(() {
+      availableGoals = goalsSnap.docs.map((doc) => doc.id).toList();
+      if (!availableGoals.contains(selectedGoal) && availableGoals.isNotEmpty) {
+        selectedGoal = availableGoals.first;
+      }
+    });
   }
 
   Future<void> _fetchGoalsAndData() async {
+    if (widget.mealNutrition != null && widget.goalNutrition != null) {
+      // Already set in initState
+      return;
+    }
     // Fetch available goals dynamically
     final goalsSnap = await FirebaseFirestore.instance.collection('goals').get();
     setState(() {
@@ -40,6 +112,10 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
   }
 
   Future<void> _fetchData() async {
+    if (widget.mealNutrition != null && widget.goalNutrition != null) {
+      // Already set in initState
+      return;
+    }
     setState(() => isLoading = true);
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
@@ -56,6 +132,7 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
         mealName = null;
         mealNutrition = null;
         goalNutrition = null;
+        recommendedMealNutrition = null;
         isLoading = false;
       });
       return;
@@ -65,6 +142,7 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
       setState(() {
         mealNutrition = null;
         goalNutrition = null;
+        recommendedMealNutrition = null;
         isLoading = false;
       });
       return;
@@ -81,13 +159,15 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
         .doc(selectedGoal)
         .get();
     goalNutrition = goalSnap.data() ?? {};
+    // Fetch recommended meal for this goal and meal name
+    final recommendedMealSnap = await FirebaseFirestore.instance
+        .collection('goals')
+        .doc(selectedGoal)
+        .collection('meals')
+        .doc(mealName)
+        .get();
+    recommendedMealNutrition = recommendedMealSnap.data();
     setState(() => isLoading = false);
-  }
-
-  void _onGoalChanged(String? newGoal) async {
-    if (newGoal == null) return;
-    setState(() => selectedGoal = newGoal);
-    await _fetchData();
   }
 
   int _parseValue(dynamic value) {
@@ -113,6 +193,10 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Always use widget.mealNutrition and widget.goalNutrition if provided
+    final Map<String, dynamic>? effectiveMealNutrition = widget.mealNutrition ?? mealNutrition;
+    final Map<String, dynamic>? effectiveGoalNutrition = widget.goalNutrition ?? goalNutrition;
+    final String effectiveGoal = widget.goalName ?? selectedGoal;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -126,24 +210,21 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : mealNutrition == null || goalNutrition == null
+          : effectiveMealNutrition == null || effectiveGoalNutrition == null
               ? const Center(child: Text('No meal or goal data found.'))
               : SingleChildScrollView(
                   child: Column(
                     children: [
-                      // Goal selector
+                      // Remove the goal selector dropdown and just show the selected goal
                       Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Row(
                           children: [
-                            const Text('Compare with: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const Text('Goal: ', style: TextStyle(fontWeight: FontWeight.bold)),
                             const SizedBox(width: 8),
-                            DropdownButton<String>(
-                              value: selectedGoal,
-                              items: availableGoals
-                                  .map((g) => DropdownMenuItem(value: g, child: Text(g)))
-                                  .toList(),
-                              onChanged: _onGoalChanged,
+                            Text(
+                              effectiveGoal,
+                              style: TextStyle(fontWeight: FontWeight.bold, color: customGreen, fontSize: 16),
                             ),
                           ],
                         ),
@@ -155,6 +236,7 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
                           children: [
                             Expanded(
                               child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   Text('Your Meal', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[800])),
                                   const SizedBox(height: 8),
@@ -170,6 +252,26 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
                                     child: widget.mealImage == null
                                         ? const Center(child: Icon(Icons.fastfood, size: 40, color: Colors.grey))
                                         : null,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Card(
+                                    color: Colors.white,
+                                    elevation: 2,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text('Meal Nutrition', style: TextStyle(fontWeight: FontWeight.bold, color: customGreen)),
+                                          const SizedBox(height: 4),
+                                          _buildMealNutritionRow('Calories', _parseValue(_getFieldValue(effectiveMealNutrition, ['calories', 'Calories', 'calorie', 'Calorie'])).toString(), 'kcal'),
+                                          _buildMealNutritionRow('Protein', _parseValue(_getFieldValue(effectiveMealNutrition, ['protein', 'Protein', 'protien', 'Protien'])).toString(), 'g'),
+                                          _buildMealNutritionRow('Carbs', _parseValue(_getFieldValue(effectiveMealNutrition, ['carbs', 'Carbs', 'carbohydrates', 'Carbohydrates', 'carb', 'Carb'])).toString(), 'g'),
+                                          _buildMealNutritionRow('Fat', _parseValue(_getFieldValue(effectiveMealNutrition, ['fat', 'Fat', 'fats', 'Fats'])).toString(), 'g'),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -197,6 +299,28 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
                                       ),
                                     ),
                                   ),
+                                  const SizedBox(height: 12),
+                                  Card(
+                                    color: Colors.white,
+                                    elevation: 2,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                                      child: recommendedMealNutrition != null
+                                          ? Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text('Recommended Nutrition', style: TextStyle(fontWeight: FontWeight.bold, color: customGreen)),
+                                                const SizedBox(height: 4),
+                                                _buildMealNutritionRow('Calories', _parseValue(_getFieldValue(recommendedMealNutrition!, ['calories', 'Calories', 'calorie', 'Calorie'])).toString(), 'kcal'),
+                                                _buildMealNutritionRow('Protein', _parseValue(_getFieldValue(recommendedMealNutrition!, ['protein', 'Protein', 'protien', 'Protien'])).toString(), 'g'),
+                                                _buildMealNutritionRow('Carbs', _parseValue(_getFieldValue(recommendedMealNutrition!, ['carbs', 'Carbs', 'carbohydrates', 'Carbohydrates', 'carb', 'Carb'])).toString(), 'g'),
+                                                _buildMealNutritionRow('Fat', _parseValue(_getFieldValue(recommendedMealNutrition!, ['fat', 'Fat', 'fats', 'Fats'])).toString(), 'g'),
+                                              ],
+                                            )
+                                          : const Text('No recommended meal found for this goal.'),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -218,27 +342,27 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
                                 const SizedBox(height: 16),
                                 _buildComparisonRow(
                                   'Calories',
-                                  _parseValue(_getFieldValue(mealNutrition!, ['calories', 'Calories', 'calorie', 'Calorie'])).toString(),
-                                  _parseValue(_getFieldValue(goalNutrition!, ['calories', 'Calories', 'calorie', 'Calorie'])).toString(),
-                                  _parseValue(_getFieldValue(mealNutrition!, ['calories', 'Calories', 'calorie', 'Calorie'])) > _parseValue(_getFieldValue(goalNutrition!, ['calories', 'Calories', 'calorie', 'Calorie'])),
+                                  _parseValue(_getFieldValue(effectiveMealNutrition, ['calories', 'Calories', 'calorie', 'Calorie'])).toString(),
+                                  _parseValue(_getFieldValue(effectiveGoalNutrition, ['calories', 'Calories', 'calorie', 'Calorie'])).toString(),
+                                  _parseValue(_getFieldValue(effectiveMealNutrition, ['calories', 'Calories', 'calorie', 'Calorie'])) > _parseValue(_getFieldValue(effectiveGoalNutrition, ['calories', 'Calories', 'calorie', 'Calorie'])),
                                 ),
                                 _buildComparisonRow(
                                   'Protein',
-                                  _parseValue(_getFieldValue(mealNutrition!, ['protein', 'Protein', 'protien', 'Protien'])).toString() + 'g',
-                                  _parseValue(_getFieldValue(goalNutrition!, ['protein', 'Protein', 'protien', 'Protien'])).toString() + 'g',
-                                  _parseValue(_getFieldValue(mealNutrition!, ['protein', 'Protein', 'protien', 'Protien'])) < _parseValue(_getFieldValue(goalNutrition!, ['protein', 'Protein', 'protien', 'Protien'])),
+                                  _parseValue(_getFieldValue(effectiveMealNutrition, ['protein', 'Protein', 'protien', 'Protien'])).toString() + 'g',
+                                  _parseValue(_getFieldValue(effectiveGoalNutrition, ['protein', 'Protein', 'protien', 'Protien'])).toString() + 'g',
+                                  _parseValue(_getFieldValue(effectiveMealNutrition, ['protein', 'Protein', 'protien', 'Protien'])) < _parseValue(_getFieldValue(effectiveGoalNutrition, ['protein', 'Protein', 'protien', 'Protien'])),
                                 ),
                                 _buildComparisonRow(
                                   'Carbs',
-                                  _parseValue(_getFieldValue(mealNutrition!, ['carbs', 'Carbs', 'carbohydrates', 'Carbohydrates', 'carb', 'Carb'])).toString() + 'g',
-                                  _parseValue(_getFieldValue(goalNutrition!, ['carbs', 'Carbs', 'carbohydrates', 'Carbohydrates', 'carb', 'Carb'])).toString() + 'g',
-                                  _parseValue(_getFieldValue(mealNutrition!, ['carbs', 'Carbs', 'carbohydrates', 'Carbohydrates', 'carb', 'Carb'])) > _parseValue(_getFieldValue(goalNutrition!, ['carbs', 'Carbs', 'carbohydrates', 'Carbohydrates', 'carb', 'Carb'])),
+                                  _parseValue(_getFieldValue(effectiveMealNutrition, ['carbs', 'Carbs', 'carbohydrates', 'Carbohydrates', 'carb', 'Carb'])).toString() + 'g',
+                                  _parseValue(_getFieldValue(effectiveGoalNutrition, ['carbs', 'Carbs', 'carbohydrates', 'Carbohydrates', 'carb', 'Carb'])).toString() + 'g',
+                                  _parseValue(_getFieldValue(effectiveMealNutrition, ['carbs', 'Carbs', 'carbohydrates', 'Carbohydrates', 'carb', 'Carb'])) > _parseValue(_getFieldValue(effectiveGoalNutrition, ['carbs', 'Carbs', 'carbohydrates', 'Carbohydrates', 'carb', 'Carb'])),
                                 ),
                                 _buildComparisonRow(
                                   'Fat',
-                                  _parseValue(_getFieldValue(mealNutrition!, ['fat', 'Fat', 'fats', 'Fats'])).toString() + 'g',
-                                  _parseValue(_getFieldValue(goalNutrition!, ['fat', 'Fat', 'fats', 'Fats'])).toString() + 'g',
-                                  _parseValue(_getFieldValue(mealNutrition!, ['fat', 'Fat', 'fats', 'Fats'])) > _parseValue(_getFieldValue(goalNutrition!, ['fat', 'Fat', 'fats', 'Fats'])),
+                                  _parseValue(_getFieldValue(effectiveMealNutrition, ['fat', 'Fat', 'fats', 'Fats'])).toString() + 'g',
+                                  _parseValue(_getFieldValue(effectiveGoalNutrition, ['fat', 'Fat', 'fats', 'Fats'])).toString() + 'g',
+                                  _parseValue(_getFieldValue(effectiveMealNutrition, ['fat', 'Fat', 'fats', 'Fats'])) > _parseValue(_getFieldValue(effectiveGoalNutrition, ['fat', 'Fat', 'fats', 'Fats'])),
                                 ),
                               ],
                             ),
@@ -431,6 +555,21 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMealNutritionRow(String label, String value, String unit) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text('$label: ', style: TextStyle(fontSize: 14, color: Colors.grey[700], fontWeight: FontWeight.w500)),
+          Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: customGreen)),
+          const SizedBox(width: 2),
+          Text(unit, style: TextStyle(fontSize: 13, color: Colors.grey[600])),
         ],
       ),
     );

@@ -23,6 +23,7 @@ class _ModernScanMealPageState extends State<ScanMealPage> with TickerProviderSt
   final ImagePicker _picker = ImagePicker();
   late AnimationController _scanAnimationController;
   final Color customGreen = const Color(0xFF86BF3E);
+  List<Map<String, dynamic>> _scannedMeals = [];
 
   @override
   void initState() {
@@ -91,18 +92,12 @@ class _ModernScanMealPageState extends State<ScanMealPage> with TickerProviderSt
         final data = json.decode(respStr);
         resultText = data['result'] ?? 'Unknown';
 
-        // Save result to Firebase
-        final user = FirebaseAuth.instance.currentUser;
-        if (user != null) {
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.uid)
-              .collection('scans')
-              .add({
-            'result': resultText,
-            'timestamp': FieldValue.serverTimestamp(),
-          });
-        }
+        // Instead of saving to Firestore, add to local list
+        _scannedMeals.add({
+          'result': resultText,
+          'imagePath': image.path,
+          'timestamp': null, // Will be set on finish
+        });
       } else {
         resultText = 'Error: ${response.statusCode}';
       }
@@ -117,6 +112,32 @@ class _ModernScanMealPageState extends State<ScanMealPage> with TickerProviderSt
       });
       _showModernResultDialog('Error: $e');
     }
+  }
+
+  Future<void> _saveAllScansToFirestore() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || _scannedMeals.isEmpty) return;
+    final now = DateTime.now();
+    final batch = FirebaseFirestore.instance.batch();
+    final userScanedMealCol = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('scaned-meal');
+    for (final meal in _scannedMeals) {
+      final docRef = userScanedMealCol.doc();
+      batch.set(docRef, {
+        'result': meal['result'],
+        'imagePath': meal['imagePath'],
+        'timestamp': now,
+      });
+    }
+    await batch.commit();
+    setState(() {
+      _scannedMeals.clear();
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('All scanned meals saved!')),
+    );
   }
 
   void _scanMeal() async {
@@ -345,6 +366,21 @@ class _ModernScanMealPageState extends State<ScanMealPage> with TickerProviderSt
                           },
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: _scannedMeals.isNotEmpty && !_isScanning ? _saveAllScansToFirestore : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: customGreen,
+                        minimumSize: const Size(double.infinity, 48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                      ),
+                      child: const Text(
+                        'Finish & Save All',
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      ),
                     ),
                   ],
                 ),

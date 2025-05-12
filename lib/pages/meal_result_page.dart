@@ -455,15 +455,41 @@ class _MealResultPageState extends State<MealResultPage> with SingleTickerProvid
                     );
                   },
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       HapticFeedback.mediumImpact();
+                      final user = FirebaseAuth.instance.currentUser;
+                      if (user == null) return;
+                      // Fetch user's goal
+                      final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+                      final userGoal = userDoc.data()?['goal']?.toString() ?? '';
+                      if (userGoal.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('No goal set for user.')),
+                        );
+                        return;
+                      }
+                      // Fetch goal nutrition
+                      final goalDoc = await FirebaseFirestore.instance.collection('goals').doc(userGoal).get();
+                      final goalNutrition = goalDoc.data() ?? {};
+                      // Prepare meal nutrition
+                      final mealNutrition = {
+                        'calories': calories,
+                        'protein': protein,
+                        'carbs': carbs,
+                        'fats': fats,
+                      };
                       Navigator.push(
                         context,
                         PageRouteBuilder(
                           pageBuilder: (context, animation, secondaryAnimation) {
                             return FadeTransition(
                               opacity: animation,
-                              child: MealComparisonPage(mealImage: widget.mealImage),
+                              child: MealComparisonPage(
+                                mealImage: widget.mealImage,
+                                mealNutrition: mealNutrition,
+                                goalNutrition: goalNutrition,
+                                goalName: userGoal,
+                              ),
                             );
                           },
                           transitionDuration: const Duration(milliseconds: 500),
