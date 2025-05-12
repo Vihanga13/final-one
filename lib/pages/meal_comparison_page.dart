@@ -73,12 +73,16 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
   // Fetch recommended meal nutrition for a goal/mealName
   Future<void> _fetchRecommendedMeal(String goal, String mealName) async {
     setState(() => isLoading = true);
+    final docId = mealName.trim();
+    print('[DEBUG] Fetching recommended meal: goal="$goal", mealName="$mealName", docId="$docId"');
     final recommendedMealSnap = await FirebaseFirestore.instance
         .collection('goals')
         .doc(goal)
         .collection('meals')
-        .doc(mealName)
+        .doc(docId)
         .get();
+    print('[DEBUG] Firestore doc exists: ' + recommendedMealSnap.exists.toString());
+    print('[DEBUG] Firestore doc data: ' + (recommendedMealSnap.data()?.toString() ?? 'null'));
     setState(() {
       recommendedMealNutrition = recommendedMealSnap.data();
       isLoading = false;
@@ -307,17 +311,19 @@ class _MealComparisonPageState extends State<MealComparisonPage> {
                                     child: Padding(
                                       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                                       child: recommendedMealNutrition != null
-                                          ? Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text('Recommended Nutrition', style: TextStyle(fontWeight: FontWeight.bold, color: customGreen)),
-                                                const SizedBox(height: 4),
-                                                _buildMealNutritionRow('Calories', _parseValue(_getFieldValue(recommendedMealNutrition!, ['calories', 'Calories', 'calorie', 'Calorie'])).toString(), 'kcal'),
-                                                _buildMealNutritionRow('Protein', _parseValue(_getFieldValue(recommendedMealNutrition!, ['protein', 'Protein', 'protien', 'Protien'])).toString(), 'g'),
-                                                _buildMealNutritionRow('Carbs', _parseValue(_getFieldValue(recommendedMealNutrition!, ['carbs', 'Carbs', 'carbohydrates', 'Carbohydrates', 'carb', 'Carb'])).toString(), 'g'),
-                                                _buildMealNutritionRow('Fat', _parseValue(_getFieldValue(recommendedMealNutrition!, ['fat', 'Fat', 'fats', 'Fats'])).toString(), 'g'),
-                                              ],
-                                            )
+                                          ? (recommendedMealNutrition!.isNotEmpty
+                                              ? Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text('Recommended Nutrition', style: TextStyle(fontWeight: FontWeight.bold, color: customGreen)),
+                                                    const SizedBox(height: 4),
+                                                    _buildMealNutritionRow('Calories', _parseValue(_getFieldValue(recommendedMealNutrition!, ['calories', 'Calories', 'calorie', 'Calorie'])).toString(), 'kcal'),
+                                                    _buildMealNutritionRow('Protein', _parseValue(_getFieldValue(recommendedMealNutrition!, ['protein', 'Protein', 'protien', 'Protien'])).toString(), 'g'),
+                                                    _buildMealNutritionRow('Carbs', _parseValue(_getFieldValue(recommendedMealNutrition!, ['carbs', 'Carbs', 'carbohydrates', 'Carbohydrates', 'carb', 'Carb'])).toString(), 'g'),
+                                                    _buildMealNutritionRow('Fat', _parseValue(_getFieldValue(recommendedMealNutrition!, ['fat', 'Fat', 'fats', 'Fats'])).toString(), 'g'),
+                                                  ],
+                                                )
+                                              : const Text('No nutrition data in Firestore for this meal.'))
                                           : const Text('No recommended meal found for this goal.'),
                                     ),
                                   ),
