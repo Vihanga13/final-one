@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/lgin': (context) => const LoginPage(),
+        '/': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/goal_selection': (context) => const GoalSelectionPage(),
         '/bmi': (context) => WhiteGreenBMIPage(),
@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
               },
               selectedIndex: 0,
             ),
-        '/': (context) => const ScanMealPage(),
+        '/scan_meal': (context) => const ScanMealPage(),
         '/complete_details': (context) => CompleteProfilePage(),
         '/forgot_password': (context) => ModernForgotPasswordPage(),
         '/meal_result': (context) => const MealResultPage(mealImage: null,), // Replace 'defaultGoal' with an appropriate value
