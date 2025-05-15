@@ -38,9 +38,9 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
-      initialRoute: '/login',
+      initialRoute: '/',
       routes: {
-        '/login': (context) => const LoginPage(),
+        '/': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/goal_selection': (context) => const GoalSelectionPage(),
         '/bmi': (context) => WhiteGreenBMIPage(),
