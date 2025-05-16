@@ -79,7 +79,7 @@ class _ModernScanMealPageState extends State<ScanMealPage> with TickerProviderSt
     try {      // Send image to your Flask API
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://192.168.8.105:5000/predict'), // Updated server IP
+        Uri.parse('http://10.16.135.3:5000/predict'), // Updated server IP
       );
       request.files.add(await http.MultipartFile.fromPath('file', image.path));
       var response = await request.send();

@@ -9,11 +9,12 @@ import 'package:health_app_3/pages/goal_selection_page.dart';
 import 'package:health_app_3/pages/login_page.dart';
 import 'package:health_app_3/pages/profile_page.dart';
 import 'package:health_app_3/pages/register_page.dart';
+import 'package:health_app_3/pages/scanmeal_page.dart' show ScanMealPage;
 import 'package:health_app_3/pages/settings_page.dart';
 import 'complete_details_page.dart';
 import 'pages/meal_comparison_page.dart';
 import 'pages/meal_result_page.dart';
-import 'pages/scanmeal_page.dart';
+
 
 
 import 'package:firebase_core/firebase_core.dart';
@@ -40,7 +41,7 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => const LoginPage(),
+        '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/goal_selection': (context) => const GoalSelectionPage(),
         '/bmi': (context) => WhiteGreenBMIPage(),
@@ -50,7 +51,7 @@ class MyApp extends StatelessWidget {
               },
               selectedIndex: 0,
             ),
-        '/scan_meal': (context) => const ScanMealPage(),
+        '/': (context) => const ScanMealPage(),
         '/complete_details': (context) => CompleteProfilePage(),
         '/forgot_password': (context) => ModernForgotPasswordPage(),
         '/meal_result': (context) => const MealResultPage(mealImage: null,), // Replace 'defaultGoal' with an appropriate value
