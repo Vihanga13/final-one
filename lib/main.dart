@@ -22,13 +22,32 @@ import 'pages/meal_result_page.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");  // Load environment variables
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(const MyApp());
+Future<void> main() async {  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    
+    // Load environment variables with better error handling
+    try {
+      await dotenv.load(fileName: ".env");
+      print("Environment variables loaded successfully");
+      print("API Key available: ${dotenv.env['OPENAI_API_KEY']?.isNotEmpty == true}");
+    } catch (envError) {
+      print('Error loading .env file: $envError');
+      // Continue execution even if .env fails to load
+    }
+
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    runApp(const MyApp());
+  } catch (e) {
+    print('Error during app initialization: $e');
+    // Ensure the app still runs even if initialization fails
+    WidgetsFlutterBinding.ensureInitialized();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    runApp(const MyApp());
+  }
 }
 
 class MyApp extends StatelessWidget {
