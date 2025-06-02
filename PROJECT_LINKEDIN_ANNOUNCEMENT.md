@@ -43,6 +43,6 @@ Plans include deploying the app to app stores, expanding AI capabilities for bro
 ✅ Secure Auth & Cloud Data Management  
 ✅ Scalable App Architecture & Agile Practices
 
-Special thanks to my supervisor and everyone who supported me throughout this journey!
+Special thanks to my supervisor, Ms. Hirushi Dilpriya, and everyone who supported me throughout this journey!
 
 #SoftwareEngineering #FinalYearProject #AI #Flutter #Firebase #PyTorch #MobileApp #HealthTech #Nutrition #MachineLearning #StudentProject #GitHub #OpenAI #AppDevelopment #DataScience #AIforGood
